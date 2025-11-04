@@ -1,0 +1,36 @@
+{
+  "name": "imagescrapper",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "image",
+    "scraper",
+    "firebase",
+    "duckduckgo",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "Image scraper API that searches DuckDuckGo for images and stores them in Firebase Storage",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase": "^12.4.0",
+    "firebase-admin": "^12.0.0",
+    "https-proxy-agent": "^7.0.6",
+    "jszip": "^3.10.1",
+    "sharp": "^0.33.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
