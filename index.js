@@ -9,11 +9,11 @@ const vpsImageStorage = require('./services/vpsImageStorage');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Production environment detection
 const isProduction = process.env.NODE_ENV === 'production';
-const BASE_URL = process.env.VPS_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.VPS_BASE_URL || 'http://localhost:3001';
 
 // Initialize services
 const imageScraper = new ImageScraper();
