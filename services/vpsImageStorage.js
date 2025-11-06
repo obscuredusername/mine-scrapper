@@ -269,7 +269,7 @@ class VPSImageStorage {
   }
 
   /**
-   * Apply watermark text to image at multiple positions using text-to-image conversion
+   * Apply watermark text to image at multiple positions
    * @param {Buffer} imageBuffer - Image buffer
    * @param {string} watermarkText - Text to use as watermark
    * @returns {Promise<Buffer>} Watermarked image buffer
@@ -280,64 +280,57 @@ class VPSImageStorage {
       const metadata = await image.metadata();
       const { width, height } = metadata;
 
-      // Calculate responsive sizing
+      // Calculate font size based on image dimensions (responsive sizing)
       const fontSize = Math.max(Math.floor(width / 25), 20);
       const padding = Math.floor(fontSize * 0.5);
 
-      // Create individual watermark images for each position
-      const watermarkOverlays = [];
+      // Create semi-transparent watermark text SVG
+      const watermarkSvg = Buffer.from(`
+        <svg width="${width}" height="${height}">
+          <style>
+            .watermark { 
+              fill: white; 
+              font-size: ${fontSize}px; 
+              font-family: 'Liberation Sans', 'DejaVu Sans', sans-serif; 
+              font-weight: bold;
+              opacity: 0.4;
+              paint-order: stroke fill;
+              stroke: rgba(0,0,0,0.3);
+              stroke-width: 2px;
+            }
+          </style>
+          <!-- Top Left -->
+          <text x="${padding}" y="${fontSize + padding}" class="watermark">${this.escapeXml(watermarkText)}</text>
+          
+          <!-- Top Right -->
+          <text x="${width - padding}" y="${fontSize + padding}" text-anchor="end" class="watermark">${this.escapeXml(watermarkText)}</text>
+          
+          <!-- Center -->
+          <text x="${width / 2}" y="${height / 2}" text-anchor="middle" class="watermark">${this.escapeXml(watermarkText)}</text>
+          
+          <!-- Bottom Left -->
+          <text x="${padding}" y="${height - padding}" class="watermark">${this.escapeXml(watermarkText)}</text>
+          
+          <!-- Bottom Right -->
+          <text x="${width - padding}" y="${height - padding}" text-anchor="end" class="watermark">${this.escapeXml(watermarkText)}</text>
+        </svg>
+      `);
 
-      // Positions: top-left, top-right, center, bottom-left, bottom-right
-      const positions = [
-        { x: padding, y: fontSize + padding },
-        { x: width - padding - (watermarkText.length * fontSize * 0.6), y: fontSize + padding },
-        { x: (width / 2) - (watermarkText.length * fontSize * 0.3), y: height / 2 },
-        { x: padding, y: height - padding - fontSize },
-        { x: width - padding - (watermarkText.length * fontSize * 0.6), y: height - padding - fontSize }
-      ];
+      // Composite watermark onto image
+      const watermarkedBuffer = await image
+        .composite([{
+          input: watermarkSvg,
+          top: 0,
+          left: 0
+        }])
+        .toBuffer();
 
-      for (const pos of positions) {
-        // Create SVG for single watermark with absolute positioning
-        const singleWatermarkSvg = `
-          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <filter id="outline">
-                <feMorphology in="SourceAlpha" result="dilated" operator="dilate" radius="1"/>
-                <feFlood flood-color="rgba(0,0,0,0.5)" flood-opacity="0.6"/>
-                <feComposite in2="dilated" operator="in"/>
-                <feMerge>
-                  <feMergeNode/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
-            <text 
-              x="${pos.x}" 
-              y="${pos.y}"
-              font-size="${fontSize}"
-              font-family="Arial, Helvetica, sans-serif"
-              font-weight="bold"
-              fill="white"
-              opacity="0.5"
-              filter="url(#outline)"
-            >${this.escapeXml(watermarkText)}</text>
-          </svg>
-        `;
-
-        watermarkOverlays.push({
-          input: Buffer.from(singleWatermarkSvg),
-          blend: 'over'
-        });
-      }
-
-      // Apply all watermarks
-      const watermarked = await image.composite(watermarkOverlays).toBuffer();
-
-      console.log(`✨ Watermark "${watermarkText}" applied successfully`);
-      return watermarked;
+      console.log(`✨ Watermark "${watermarkText}" applied to image`);
+      return watermarkedBuffer;
 
     } catch (error) {
-      console.error('⚠️ Watermark failed:', error.message);
+      console.error('⚠️ Watermark application failed:', error.message);
+      // Return original image if watermarking fails
       return imageBuffer;
     }
   }
