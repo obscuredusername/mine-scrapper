@@ -284,14 +284,19 @@ class VPSImageStorage {
       const fontSize = Math.max(Math.floor(width / 25), 20);
       const padding = Math.floor(fontSize * 0.5);
 
-      // Create semi-transparent watermark text SVG
+      // Create semi-transparent watermark text SVG with embedded font
       const watermarkSvg = Buffer.from(`
-        <svg width="${width}" height="${height}">
+        <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style type="text/css">
+              @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&amp;display=swap');
+            </style>
+          </defs>
           <style>
             .watermark { 
               fill: white; 
               font-size: ${fontSize}px; 
-              font-family: Arial, sans-serif; 
+              font-family: 'Roboto', 'DejaVu Sans', 'Liberation Sans', sans-serif; 
               font-weight: bold;
               opacity: 0.4;
               paint-order: stroke fill;
