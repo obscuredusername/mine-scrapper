@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize services
+// Initialize servicess
 const imageScraper = new ImageScraper();
 
 // Middleware
